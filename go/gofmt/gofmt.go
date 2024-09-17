@@ -1,6 +1,7 @@
 package gofmt
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/xhd2015/xgo/support/cmd"
@@ -16,4 +17,34 @@ func Format(goFile string) error {
 	}
 
 	return cmd.Dir(dir).Run("gofmt", "-w", "-s", file)
+}
+
+func TryFormatCode(code string) string {
+	fcode, err := FormatCode(code)
+	if err != nil {
+		return code
+	}
+	return fcode
+}
+
+func FormatCode(code string) (string, error) {
+	dir, err := os.MkdirTemp("", "gofmt")
+	if err != nil {
+		return "", err
+	}
+	defer os.RemoveAll(dir)
+	codeFile := filepath.Join(dir, "code.go")
+	err = os.WriteFile(codeFile, []byte(code), 0755)
+	if err != nil {
+		return "", err
+	}
+	err = Format(codeFile)
+	if err != nil {
+		return "", err
+	}
+	content, err := os.ReadFile(codeFile)
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
 }
