@@ -9,7 +9,3 @@ type Object struct {
 func (c *Object) GoObject() types.Object {
 	return c.obj
 }
-
-func (c *Object) AsStruct() types.Object {
-	return c.obj
-}

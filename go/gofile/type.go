@@ -10,7 +10,7 @@ const (
 	Int            BuiltinType = "int"
 	Int64          BuiltinType = "int64"
 	String         BuiltinType = "string"
-	Boolean        BuiltinType = "boolean"
+	Bool           BuiltinType = "bool"
 	InterfaceEmpty BuiltinType = "interface{}"
 )
 

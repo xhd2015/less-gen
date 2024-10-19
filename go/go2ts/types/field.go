@@ -42,9 +42,13 @@ func buildField(field *types.Var, tag string) *gofile.Field {
 	// fmt.Printf("Underlying: %T %v\n", ft.Underlying(), ft.Underlying())
 	var t gofile.Type = gofile.InterfaceEmpty
 	if bt, ok := ft.Underlying().(*types.Basic); ok {
-		if bt.Kind() == types.Int64 {
+		switch bt.Kind() {
+		case types.Int64:
 			t = gofile.Int64
+		case types.Bool:
+			t = gofile.Bool
 		}
+
 	}
 	if named, ok := ft.(*types.Named); ok {
 		typObj := named.Obj()
