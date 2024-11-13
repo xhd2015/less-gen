@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/xhd2015/less-gen/go/go2ts/project"
+	"github.com/xhd2015/less-gen/go/project"
 
 	go2ts_types "github.com/xhd2015/less-gen/go/go2ts/types"
 	"github.com/xhd2015/less-gen/go/gofile"

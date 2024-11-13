@@ -1,5 +1,3 @@
-github.com/xhd2015/xgo v1.0.48 h1:V1sDMdRmqoh4JFI8kFYLBEY6YCKIaojuF3D3cNEhhJo=
-github.com/xhd2015/xgo v1.0.48/go.mod h1:LJxlcYSaXo/9YpsnB3yHh9NHe7BRettYCytaNGWY2BE=
 github.com/xhd2015/xgo v1.0.49-0.20240916074001-40aa40fc7623 h1:KyXYL31ovMvTu4+wV9iAciEc3IWYWAakZlnlzGaYuG0=
 github.com/xhd2015/xgo v1.0.49-0.20240916074001-40aa40fc7623/go.mod h1:LJxlcYSaXo/9YpsnB3yHh9NHe7BRettYCytaNGWY2BE=
 golang.org/x/mod v0.21.0 h1:vvrHzRwRfVKSiLrG+d4FMl/Qi4ukBCE6kZlTUkDYRT0=

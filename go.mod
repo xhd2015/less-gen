@@ -1,8 +1,6 @@
 module github.com/xhd2015/less-gen
 
-go 1.22.0
-
-toolchain go1.22.2
+go 1.18
 
 require (
 	github.com/xhd2015/xgo v1.0.49-0.20240916074001-40aa40fc7623
