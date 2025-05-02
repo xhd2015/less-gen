@@ -291,7 +291,7 @@ func toTSType(t gofile.Type) string {
 	switch t := t.(type) {
 	case gofile.BuiltinType:
 		switch t {
-		case gofile.Boolean:
+		case gofile.Bool:
 			return "bool"
 		case gofile.Int, gofile.Int64:
 			return "number"

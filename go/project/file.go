@@ -15,7 +15,7 @@ func (c *File) GoFile() *ast.File {
 }
 
 func (c *File) Path() string {
-	pos := c.pkg.project.fset.Position(c.file.FileStart)
+	pos := c.pkg.project.fset.Position(c.file.Package)
 	return pos.Filename
 }
 
