@@ -10,6 +10,14 @@ func CamelToSnake(s string) string {
 	return strings.Join(list, "_")
 }
 
+func SnakeToCamel(s string) string {
+	list := strings.Split(s, "_")
+	for i, e := range list {
+		list[i] = Capitalize(e)
+	}
+	return strings.Join(list, "")
+}
+
 func Capitalize(s string) string {
 	if s == "" {
 		return ""
