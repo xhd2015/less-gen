@@ -26,6 +26,7 @@ func (s StructDef) String() string {
 
 type FormatOptions struct {
 	NoPrefixType bool
+	NoPrefixName bool
 }
 
 func (s StructDef) Format(opts FormatOptions) string {
@@ -35,7 +36,10 @@ func (s StructDef) Format(opts FormatOptions) string {
 	if !opts.NoPrefixType {
 		sb.WriteString("type ")
 	}
-	sb.WriteString(fmt.Sprintf("%s struct {\n", s.Name))
+	if !opts.NoPrefixName {
+		sb.WriteString(fmt.Sprintf("%s ", s.Name))
+	}
+	sb.WriteString("struct {\n")
 
 	// Write each field with proper indentation
 	for _, field := range s.Fields {
