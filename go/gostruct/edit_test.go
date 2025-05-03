@@ -10,10 +10,9 @@ import (
 )
 
 // parseStructFromString parses a Go source string and returns the first struct type found
-func parseStructFromString(t *testing.T, src string) (*ast.StructType, string) {
+func parseStructFromString(t *testing.T, fset *token.FileSet, src string) (*ast.StructType, string) {
 	t.Helper()
 
-	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "", "package test\n"+src, parser.ParseComments)
 	if err != nil {
 		t.Fatalf("Failed to parse source: %v", err)
@@ -42,10 +41,9 @@ func parseStructFromString(t *testing.T, src string) (*ast.StructType, string) {
 }
 
 // formatNode returns the string representation of an AST node
-func formatNode(t *testing.T, node ast.Node) string {
+func formatNode(t *testing.T, fset *token.FileSet, node ast.Node) string {
 	t.Helper()
 
-	fset := token.NewFileSet()
 	var buf strings.Builder
 
 	err := printer.Fprint(&buf, fset, node)
@@ -64,10 +62,11 @@ func TestParseStruct(t *testing.T) {
 	}`
 
 	// Parse struct
-	structType, structName := parseStructFromString(t, src)
+	fset := token.NewFileSet()
+	structType, structName := parseStructFromString(t, fset, src)
 
 	// Extract struct definition
-	structDef := ParseStruct(structType, structName)
+	structDef := ParseStruct(fset, structType, structName)
 
 	// Verify struct name
 	if structDef.Name != "User" {
@@ -126,7 +125,7 @@ func TestMergeStructs(t *testing.T) {
 	}
 
 	// Verify fields (field order matters)
-	if result.Fields[0].Name != "ID" || result.Fields[0].Type != "int64" {
+	if result.Fields[0].Name != "ID" || result.Fields[0].Type != "int" {
 		t.Errorf("Expected ID:int64, got %s:%s", result.Fields[0].Name, result.Fields[0].Type)
 	}
 
@@ -169,8 +168,9 @@ func TestUpdateStructFields(t *testing.T) {
 		Age  int
 	}`
 
+	fset := token.NewFileSet()
 	// Parse struct
-	structType, structName := parseStructFromString(t, src)
+	structType, structName := parseStructFromString(t, fset, src)
 
 	// Define desired fields
 	fields := []FieldDef{
@@ -180,10 +180,10 @@ func TestUpdateStructFields(t *testing.T) {
 	}
 
 	// Log initial state
-	t.Logf("Initial structure: %s", formatNode(t, structType))
+	t.Logf("Initial structure: %s", formatNode(t, fset, structType))
 
 	// Get merged struct
-	mergedStruct := UpdateStructFields(structType, structName, fields, nil)
+	mergedStruct := UpdateStructFields(fset, structType, structName, fields, nil)
 
 	// Output the merged struct as string
 	t.Logf("Merged struct: %s", mergedStruct.String())
@@ -197,8 +197,8 @@ func TestUpdateStructFields(t *testing.T) {
 	for _, field := range mergedStruct.Fields {
 		switch field.Name {
 		case "ID":
-			if field.Type != "int64" {
-				t.Errorf("Expected ID type to be int64, got %s", field.Type)
+			if field.Type != "int" {
+				t.Errorf("Expected ID type to be int, got %s", field.Type)
 			}
 		case "Email":
 			// Email field should exist
@@ -208,14 +208,14 @@ func TestUpdateStructFields(t *testing.T) {
 	}
 
 	// Test with reserved fields
-	structType, structName = parseStructFromString(t, src)
+	structType, structName = parseStructFromString(t, fset, src)
 	reserveFields := map[string]bool{"Age": true}
 
 	// Log initial state for second test
-	t.Logf("Initial structure (2nd test): %s", formatNode(t, structType))
+	t.Logf("Initial structure (2nd test): %s", formatNode(t, fset, structType))
 
 	// Get merged struct with reserved fields
-	mergedStruct = UpdateStructFields(structType, structName, fields, reserveFields)
+	mergedStruct = UpdateStructFields(fset, structType, structName, fields, reserveFields)
 
 	t.Logf("Merged struct (2nd test): %s", mergedStruct.String())
 
@@ -241,10 +241,11 @@ func TestComplexTypeHandling(t *testing.T) {
 	}`
 
 	// Parse struct
-	structType, structName := parseStructFromString(t, src)
+	fset := token.NewFileSet()
+	structType, structName := parseStructFromString(t, fset, src)
 
 	// Extract struct definition
-	structDef := ParseStruct(structType, structName)
+	structDef := ParseStruct(fset, structType, structName)
 
 	// Verify extracted types
 	if len(structDef.Fields) != 2 {
@@ -271,9 +272,7 @@ func TestComplexTypeHandling(t *testing.T) {
 	}
 
 	// Get merged struct with complex fields
-	mergedStruct := UpdateStructFields(structType, structName, fields, nil)
-
-	t.Logf("Merged struct with complex types: %s", mergedStruct.String())
+	mergedStruct := UpdateStructFields(fset, structType, structName, fields, nil)
 
 	// Verify fields in the merged struct
 	if len(mergedStruct.Fields) != 4 {
@@ -302,7 +301,8 @@ func TestFieldWithComments(t *testing.T) {
 	}`
 
 	// Parse struct
-	structType, structName := parseStructFromString(t, src)
+	fset := token.NewFileSet()
+	structType, structName := parseStructFromString(t, fset, src)
 
 	// Add a new field with a comment
 	fields := []FieldDef{
@@ -312,11 +312,10 @@ func TestFieldWithComments(t *testing.T) {
 	}
 
 	// Get merged struct
-	mergedStruct := UpdateStructFields(structType, structName, fields, nil)
+	mergedStruct := UpdateStructFields(fset, structType, structName, fields, nil)
 
 	// Output the merged struct as string
 	resultStr := mergedStruct.String()
-	t.Logf("Merged struct with comments: %s", resultStr)
 
 	// Check that comments are properly included in the string representation
 	if !strings.Contains(resultStr, "Email string // User's email address") {
@@ -327,7 +326,7 @@ func TestFieldWithComments(t *testing.T) {
 	UpdateAST(structType, mergedStruct)
 
 	// Re-parse the updated struct to verify comments were set
-	updatedDef := ParseStruct(structType, structName)
+	updatedDef := ParseStruct(fset, structType, structName)
 
 	// Verify fields with comments
 	for _, field := range updatedDef.Fields {
@@ -372,9 +371,6 @@ func TestPreserveTagAndComment(t *testing.T) {
 	if len(result.Fields) != 3 {
 		t.Errorf("Expected 3 fields, got %d", len(result.Fields))
 	}
-
-	// Log the merged struct
-	t.Logf("Merged struct with preserved tags and comments: %s", result.String())
 
 	// Check ID field - should have current's tag and comment
 	idField := findField(result.Fields, "ID")

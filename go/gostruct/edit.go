@@ -2,6 +2,7 @@ package gostruct
 
 import (
 	"go/ast"
+	"go/token"
 )
 
 // UpdateStructFields parses the AST struct and merges it with the desired fields.
@@ -14,9 +15,9 @@ import (
 // - reserveFields: map of field names that should be preserved even if not in fields list
 //
 // Returns the merged struct definition.
-func UpdateStructFields(structType *ast.StructType, name string, fields []FieldDef, reserveFields map[string]bool) StructDef {
+func UpdateStructFields(fset *token.FileSet, structType *ast.StructType, name string, fields []FieldDef, reserveFields map[string]bool) StructDef {
 	// Parse AST into StructDef
-	current := ParseStruct(structType, name)
+	current := ParseStruct(fset, structType, name)
 
 	// Create desired StructDef
 	desired := StructDef{

@@ -85,10 +85,14 @@ func MergeStructs(current StructDef, desired StructDef, reserveFields map[string
 
 	// Process all desired fields
 	for _, field := range desired.Fields {
-		// Check if field exists in current struct
-		if currentField, exists := currentFields[field.Name]; exists {
+		// Check if field ok in current struct
+		if currentField, ok := currentFields[field.Name]; ok {
 			// Copy field with potentially merged properties
 			mergedField := field
+
+			if checkReuseCurrentType(currentField.Type, field.Type) {
+				mergedField.Type = currentField.Type
+			}
 
 			// If current field has Tag and desired doesn't, copy it
 			if field.Tag == "" && currentField.Tag != "" {
@@ -118,4 +122,44 @@ func MergeStructs(current StructDef, desired StructDef, reserveFields map[string
 	}
 
 	return result
+}
+
+func isBasicType(t string) bool {
+	return isBasicIntType(t) || t == "string" || t == "bool" || t == "float64" || t == "time.Time"
+}
+
+func isBasicIntType(t string) bool {
+	return t == "int64" || t == "int32" || t == "int16" || t == "int8"
+}
+
+func checkReuseCurrentType(currentType string, desiredType string) bool {
+	if currentType == "" || currentType == desiredType {
+		return false
+	}
+	var currentIsPtr bool
+	currentNakedType := currentType
+	if strings.HasPrefix(currentType, "*") {
+		currentIsPtr = true
+		currentNakedType = currentType[1:]
+	}
+	var desiredIsPtr bool
+	desiredNakedType := desiredType
+	if strings.HasPrefix(desiredType, "*") {
+		desiredIsPtr = true
+		desiredNakedType = desiredType[1:]
+	}
+	if currentIsPtr != desiredIsPtr {
+		return false
+	}
+	if !isBasicType(desiredNakedType) {
+		return false
+	}
+
+	if isBasicIntType(desiredNakedType) && currentNakedType == "bool" {
+		return true
+	}
+	if !isBasicType(currentNakedType) {
+		return true
+	}
+	return false
 }

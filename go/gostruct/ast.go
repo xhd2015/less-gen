@@ -1,6 +1,7 @@
 package gostruct
 
 import (
+	"fmt"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -9,7 +10,7 @@ import (
 )
 
 // ParseStruct extracts a StructDef from an AST struct type
-func ParseStruct(structType *ast.StructType, name string) StructDef {
+func ParseStruct(fset *token.FileSet, structType *ast.StructType, name string) StructDef {
 	var fields []FieldDef
 	// Extract each field
 	if structType != nil {
@@ -21,12 +22,11 @@ func ParseStruct(structType *ast.StructType, name string) StructDef {
 			}
 			for _, name := range field.Names {
 				fieldName := name.Name
-				fieldType := extractFieldType(field.Type)
+				fieldType := extractFieldType(fset, field.Type)
 
 				var tag string
-				if field.Tag != nil && len(field.Tag.Value) >= 2 && strings.HasPrefix(field.Tag.Value, "`") && strings.HasSuffix(field.Tag.Value, "`") {
-					// strip the backticks
-					tag = field.Tag.Value[1 : len(field.Tag.Value)-1]
+				if field.Tag != nil {
+					tag = ParseTag(field.Tag.Value)
 				}
 
 				// Extract comment if present
@@ -132,16 +132,13 @@ func UpdateAST(structType *ast.StructType, structDef StructDef) {
 }
 
 // extractFieldType returns the string representation of a field type
-func extractFieldType(expr ast.Expr) string {
-	// Create a new token file set
-	fset := token.NewFileSet()
-
+func extractFieldType(fset *token.FileSet, expr ast.Expr) string {
 	// Format the expression
 	var buf strings.Builder
 	err := format.Node(&buf, fset, expr)
 	if err != nil {
 		// Return a placeholder if formatting fails
-		return "unknown"
+		return fmt.Sprintf("error_%v", err)
 	}
 
 	return buf.String()
