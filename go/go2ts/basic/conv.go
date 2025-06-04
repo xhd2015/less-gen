@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/xhd2015/less-gen/go/load"
+	load "github.com/xhd2015/less-gen/go/load/legacy"
 )
 
 type Translate struct {

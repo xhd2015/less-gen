@@ -13,7 +13,7 @@ import (
 	go2ts_types "github.com/xhd2015/less-gen/go/go2ts/types"
 	"github.com/xhd2015/less-gen/go/gofile"
 	"github.com/xhd2015/less-gen/go/gofmt"
-	"github.com/xhd2015/less-gen/go/load"
+	load "github.com/xhd2015/less-gen/go/load/legacy"
 	"github.com/xhd2015/less-gen/template"
 	"github.com/xhd2015/less-gen/ts/format"
 )

@@ -3,7 +3,7 @@ package project
 import (
 	"testing"
 
-	"github.com/xhd2015/less-gen/go/load"
+	load "github.com/xhd2015/less-gen/go/load/legacy"
 )
 
 func TestGen(t *testing.T) {

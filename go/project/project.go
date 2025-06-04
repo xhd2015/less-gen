@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/xhd2015/less-gen/go/load"
+	load "github.com/xhd2015/less-gen/go/load/legacy"
 	"golang.org/x/tools/go/packages"
 )
 

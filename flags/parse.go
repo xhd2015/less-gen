@@ -31,7 +31,7 @@ import "strings"
 //	      _ = value
 //	    // ...
 //	    default:
-//	      return fmt.Errorf("unknown flag: %s", flag)
+//	      return fmt.Errorf("unrecognized flag: %s", flag)
 //	    }
 //	  }
 //	  return nil

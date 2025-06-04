@@ -1,47 +1,35 @@
 package load
 
 import (
+	"fmt"
 	"go/token"
-	"path/filepath"
 
 	"golang.org/x/tools/go/packages"
 )
 
-type LoadOptions struct {
-	Dir        string
-	ForTest    bool
-	BuildFlags []string // see FlagBuilder
-	LoadMode   []packages.LoadMode
+type Packages struct {
+	Fset           *token.FileSet
+	Packages       []*packages.Package
+	PackageMapping map[string]*packages.Package
 }
 
-func LoadPackages(args []string, opts *LoadOptions) (*token.FileSet, []*packages.Package, error) {
+func Load(dir string, patterns ...string) (*Packages, error) {
 	fset := token.NewFileSet()
-	dir := opts.Dir
-
-	absDir, err := filepath.Abs(dir)
+	pkgs, err := packages.Load(&packages.Config{
+		Fset: fset,
+		Mode: packages.NeedTypes | packages.NeedSyntax | packages.NeedDeps | packages.NeedName | packages.NeedImports | packages.NeedTypesInfo,
+		Dir:  dir,
+	}, patterns...)
 	if err != nil {
-		return nil, nil, err
+		return nil, fmt.Errorf("loading packages: %w", err)
 	}
-	var loadMode packages.LoadMode
-	if len(opts.LoadMode) > 0 {
-		for _, m := range opts.LoadMode {
-			loadMode |= m
-		}
-	} else {
-		// all
-		loadMode = packages.NeedName | packages.NeedFiles | packages.NeedCompiledGoFiles | packages.NeedTypesSizes | packages.NeedSyntax | packages.NeedDeps | packages.NeedImports | packages.NeedTypes | packages.NeedTypesInfo | packages.NeedModule
+	packageMapping := make(map[string]*packages.Package, len(pkgs))
+	for _, pkg := range pkgs {
+		packageMapping[pkg.PkgPath] = pkg
 	}
-
-	cfg := &packages.Config{
-		Dir:        absDir,
-		Mode:       loadMode,
-		Fset:       fset,
-		Tests:      opts.ForTest,
-		BuildFlags: opts.BuildFlags,
-	}
-	pkgs, err := packages.Load(cfg, args...)
-	if err != nil {
-		return nil, nil, err
-	}
-	return fset, pkgs, nil
+	return &Packages{
+		Fset:           fset,
+		Packages:       pkgs,
+		PackageMapping: packageMapping,
+	}, nil
 }
