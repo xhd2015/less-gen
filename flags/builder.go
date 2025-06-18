@@ -47,6 +47,9 @@ func New() *Builder {
 func String(names string, target interface{}) *Builder {
 	return (&Builder{}).String(names, target)
 }
+func Bool(names string, target interface{}) *Builder {
+	return (&Builder{}).Bool(names, target)
+}
 
 // Duration creates a new builder and adds a duration flag
 func Duration(names string, target interface{}) *Builder {
@@ -80,6 +83,16 @@ func (b *Builder) String(names string, target interface{}) *Builder {
 		Names:  flagNames,
 		Target: target,
 		Type:   FlagTypeString,
+	})
+	return b
+}
+
+func (b *Builder) Bool(names string, target interface{}) *Builder {
+	flagNames := parseNames(names)
+	b.flagSpecs = append(b.flagSpecs, FlagSpec{
+		Names:  flagNames,
+		Target: target,
+		Type:   FlagTypeBool,
 	})
 	return b
 }
@@ -149,7 +162,7 @@ func (b *Builder) Parse(args []string) ([]string, error) {
 	n := len(args)
 
 	for i := 0; i < n; i++ {
-		flag, getValue := ParseIndex(args, &i)
+		flag, getValue := parseIndex(args, &i)
 		if flag == "" {
 			remainArgs = append(remainArgs, args[i])
 			continue
@@ -182,8 +195,8 @@ func (b *Builder) Parse(args []string) ([]string, error) {
 		}
 
 		// Get the value for non-bool flags
-		value, hasValue := getValue()
-		if !hasValue && spec.Type != FlagTypeBool {
+		value, hasValue := getValue(spec.Type == FlagTypeBool)
+		if !hasValue {
 			return nil, fmt.Errorf("%s requires a value", flag)
 		}
 
@@ -215,6 +228,8 @@ func (b *Builder) setValue(spec *FlagSpec, value string) error {
 	target := spec.Target
 
 	switch spec.Type {
+	case FlagTypeBool:
+		return setBoolValue(target, value)
 	case FlagTypeString:
 		return setStringValue(target, value)
 	case FlagTypeDuration:
@@ -226,6 +241,20 @@ func (b *Builder) setValue(spec *FlagSpec, value string) error {
 	default:
 		return fmt.Errorf("unsupported flag type")
 	}
+}
+
+func setBoolValue(target interface{}, value string) error {
+	v := reflect.ValueOf(target)
+	if v.Kind() != reflect.Ptr {
+		return fmt.Errorf("target must be a pointer")
+	}
+	elem := v.Elem()
+	if elem.Kind() == reflect.Bool {
+		elem.SetBool(value == "" || value == "true")
+	} else {
+		return fmt.Errorf("target must be a pointer to a bool")
+	}
+	return nil
 }
 
 // setStringValue sets a string value to a target (supports *string and **string)

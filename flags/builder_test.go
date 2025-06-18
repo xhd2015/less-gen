@@ -6,6 +6,26 @@ import (
 	"time"
 )
 
+func TestBuilder_Bool(t *testing.T) {
+	var verbose bool
+	args := []string{"--verbose", "true"}
+
+	remainArgs, err := Bool("-v,--verbose", &verbose).Parse(args)
+
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+	if !verbose {
+		t.Errorf("Expected verbose=true, got %v", verbose)
+	}
+	if len(remainArgs) != 1 {
+		t.Errorf("Expected 1 remaining args, got %v", remainArgs)
+	}
+	if remainArgs[0] != "true" {
+		t.Errorf("Expected remainArgs=['true'], got %v", remainArgs)
+	}
+}
+
 func TestBuilder_String(t *testing.T) {
 	var verbose string
 	args := []string{"--verbose", "debug", "remaining"}

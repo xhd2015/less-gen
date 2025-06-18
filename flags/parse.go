@@ -37,25 +37,39 @@ import "strings"
 //	  return nil
 //	}
 func ParseIndex(args []string, i *int) (string, func() (string, bool)) {
+	flag, fn := parseIndex(args, i)
+	var cb func() (string, bool)
+	if fn != nil {
+		cb = func() (string, bool) {
+			return fn(false)
+		}
+	}
+	return flag, cb
+}
+
+func parseIndex(args []string, i *int) (string, func(boolOnly bool) (string, bool)) {
 	arg := args[*i]
 	if !strings.HasPrefix(arg, "-") {
 		return "", nil
 	}
-	idx := strings.Index(arg[1:], "=")
+	eqIdx := strings.Index(arg[1:], "=")
 
 	flag := arg
-	value := func() (string, bool) {
+	value := func(boolOnly bool) (string, bool) {
+		if boolOnly {
+			return "", true
+		}
 		if *i+1 >= len(args) {
 			return "", false
 		}
 		*i++
 		return args[*i], true
 	}
-	if idx >= 0 {
-		idx++
-		flag = arg[:idx]
-		value = func() (string, bool) {
-			return arg[idx+1:], true
+	if eqIdx >= 0 {
+		eqIdx++
+		flag = arg[:eqIdx]
+		value = func(boolOnly bool) (string, bool) {
+			return arg[eqIdx+1:], true
 		}
 	}
 	return flag, value
