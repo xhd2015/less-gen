@@ -167,7 +167,11 @@ func (b *Builder) Parse(args []string) ([]string, error) {
 					if b.helpFunc != nil {
 						b.helpFunc()
 					} else if b.helpText != "" {
-						fmt.Println(b.helpText)
+						txt := strings.TrimPrefix(b.helpText, "\n")
+						fmt.Print(txt)
+						if !strings.HasSuffix(txt, "\n") {
+							fmt.Println()
+						}
 					}
 					if !b.helpNoExit {
 						os.Exit(0)
