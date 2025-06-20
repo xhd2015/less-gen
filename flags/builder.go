@@ -16,6 +16,7 @@ type Builder struct {
 	helpFunc   func()
 	helpText   string
 	helpNoExit bool
+	prefixOnly bool
 }
 
 // FlagSpec represents a single flag specification
@@ -156,14 +157,28 @@ func (b *Builder) HelpNoExit() *Builder {
 	return b
 }
 
+// PrefixOnly stops parsing flags after the first non-flag argument
+func (b *Builder) PrefixOnly() *Builder {
+	b.prefixOnly = true
+	return b
+}
+
 // Parse parses the arguments using the configured flags
 func (b *Builder) Parse(args []string) ([]string, error) {
 	var remainArgs []string
 	n := len(args)
 
 	for i := 0; i < n; i++ {
+		if args[i] == "--" {
+			remainArgs = append(remainArgs, args[i+1:]...)
+			break
+		}
 		flag, getValue := parseIndex(args, &i)
 		if flag == "" {
+			if b.prefixOnly {
+				remainArgs = append(remainArgs, args[i:]...)
+				break
+			}
 			remainArgs = append(remainArgs, args[i])
 			continue
 		}
