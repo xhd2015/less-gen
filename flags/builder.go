@@ -13,8 +13,6 @@ import (
 // Builder represents a fluent flag parser builder
 type Builder struct {
 	flagSpecs  []FlagSpec
-	helpFunc   func()
-	helpText   string
 	helpNoExit bool
 	prefixOnly bool
 }
@@ -24,7 +22,8 @@ type FlagSpec struct {
 	Names    []string    // flag names like ["-v", "--verbose"]
 	Target   interface{} // pointer to the target variable
 	Type     FlagType    // type of the flag
-	HelpText string      // help text for this flag
+	HelpText string
+	HelpFunc func()
 }
 
 // FlagType represents the type of flag
@@ -135,10 +134,10 @@ func (b *Builder) StringSlice(names string, target interface{}) *Builder {
 func (b *Builder) Help(names string, helpText string) *Builder {
 	flagNames := parseNames(names)
 	b.flagSpecs = append(b.flagSpecs, FlagSpec{
-		Names: flagNames,
-		Type:  FlagTypeBool,
+		Names:    flagNames,
+		Type:     FlagTypeBool,
+		HelpText: helpText,
 	})
-	b.helpText = helpText
 	return b
 }
 
@@ -146,12 +145,13 @@ func (b *Builder) Help(names string, helpText string) *Builder {
 func (b *Builder) HelpFunc(names string, helpFunc func()) *Builder {
 	flagNames := parseNames(names)
 	b.flagSpecs = append(b.flagSpecs, FlagSpec{
-		Names: flagNames,
-		Type:  FlagTypeBool,
+		Names:    flagNames,
+		Type:     FlagTypeBool,
+		HelpFunc: helpFunc,
 	})
-	b.helpFunc = helpFunc
 	return b
 }
+
 func (b *Builder) HelpNoExit() *Builder {
 	b.helpNoExit = true
 	return b
@@ -189,13 +189,13 @@ func (b *Builder) Parse(args []string) ([]string, error) {
 		}
 
 		// Handle help flag
-		if spec.Type == FlagTypeBool && (b.helpFunc != nil || b.helpText != "") {
+		if spec.HelpFunc != nil || spec.HelpText != "" {
 			for _, name := range spec.Names {
 				if name == flag {
-					if b.helpFunc != nil {
-						b.helpFunc()
-					} else if b.helpText != "" {
-						txt := strings.TrimPrefix(b.helpText, "\n")
+					if spec.HelpFunc != nil {
+						spec.HelpFunc()
+					} else if spec.HelpText != "" {
+						txt := strings.TrimPrefix(spec.HelpText, "\n")
 						fmt.Print(txt)
 						if !strings.HasSuffix(txt, "\n") {
 							fmt.Println()
