@@ -24,11 +24,22 @@ func FindListenablePort(host string, port int, limit int) (int, error) {
 	return 0, fmt.Errorf("no available port found")
 }
 
-func IsTCPAddrDialable(url string, timeout time.Duration) (bool, error) {
-	conn, err := net.DialTimeout("tcp", url, timeout)
+// addr example:
+//   - 127.0.0.1:7070
+func IsTCPAddrDialable(addr string, timeout time.Duration) (bool, error) {
+	conn, err := net.DialTimeout("tcp", addr, timeout)
 	if err != nil {
 		return false, nil
 	}
 	conn.Close()
 	return true, nil
+}
+
+func WaitTCPAddrDialable(addr string, timeout time.Duration) error {
+	conn, err := net.DialTimeout("tcp", addr, timeout)
+	if err != nil {
+		return err
+	}
+	conn.Close()
+	return nil
 }

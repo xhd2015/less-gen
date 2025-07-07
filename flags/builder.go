@@ -12,9 +12,9 @@ import (
 
 // Builder represents a fluent flag parser builder
 type Builder struct {
-	flagSpecs  []FlagSpec
-	helpNoExit bool
-	prefixOnly bool
+	flagSpecs      []FlagSpec
+	helpNoExit     bool
+	stopOnFirstArg bool
 }
 
 // FlagSpec represents a single flag specification
@@ -157,9 +157,9 @@ func (b *Builder) HelpNoExit() *Builder {
 	return b
 }
 
-// PrefixOnly stops parsing flags after the first non-flag argument
-func (b *Builder) PrefixOnly() *Builder {
-	b.prefixOnly = true
+// StopOnFirstArg stops parsing flags after the first non-flag argument
+func (b *Builder) StopOnFirstArg() *Builder {
+	b.stopOnFirstArg = true
 	return b
 }
 
@@ -175,7 +175,7 @@ func (b *Builder) Parse(args []string) ([]string, error) {
 		}
 		flag, getValue := parseIndex(args, &i)
 		if flag == "" {
-			if b.prefixOnly {
+			if b.stopOnFirstArg {
 				remainArgs = append(remainArgs, args[i:]...)
 				break
 			}
