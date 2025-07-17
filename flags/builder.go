@@ -263,12 +263,23 @@ func setBoolValue(target interface{}, value string) error {
 	if v.Kind() != reflect.Ptr {
 		return fmt.Errorf("target must be a pointer")
 	}
+
 	elem := v.Elem()
-	if elem.Kind() == reflect.Bool {
-		elem.SetBool(value == "" || value == "true")
+	boolVal := value == "" || value == "true"
+
+	if elem.Kind() == reflect.Ptr {
+		// Handle **bool
+		if elem.IsNil() {
+			elem.Set(reflect.New(elem.Type().Elem()))
+		}
+		elem.Elem().SetBool(boolVal)
+	} else if elem.Kind() == reflect.Bool {
+		// Handle *bool
+		elem.SetBool(boolVal)
 	} else {
-		return fmt.Errorf("target must be a pointer to a bool")
+		return fmt.Errorf("target must be *bool or **bool, actual: %v", elem.Type())
 	}
+
 	return nil
 }
 
@@ -338,17 +349,24 @@ func setIntValue(target interface{}, value string) error {
 	}
 
 	elem := v.Elem()
+
+	setElem := elem
 	if elem.Kind() == reflect.Ptr {
-		// Handle **int
+		// Handle **int or **int64
 		if elem.IsNil() {
 			elem.Set(reflect.New(elem.Type().Elem()))
 		}
-		elem.Elem().SetInt(int64(intVal))
-	} else if elem.Kind() == reflect.Int {
-		// Handle *int
-		elem.SetInt(int64(intVal))
-	} else {
-		return fmt.Errorf("target must be *int or **int")
+		setElem = elem.Elem()
+	}
+
+	elemType := setElem.Type()
+	switch elemType.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		setElem.SetInt(int64(intVal))
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		setElem.SetUint(uint64(intVal))
+	default:
+		return fmt.Errorf("target must be *int or **int, actual: %v", elem.Type())
 	}
 
 	return nil

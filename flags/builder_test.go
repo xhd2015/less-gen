@@ -554,3 +554,111 @@ func TestTopLevelChaining(t *testing.T) {
 		t.Errorf("Expected remainArgs=['remaining'], got %v", remainArgs)
 	}
 }
+
+func TestBuilder_BoolDoublePointer(t *testing.T) {
+	var verbose *bool
+	args := []string{"--verbose"}
+
+	remainArgs, err := Bool("--verbose", &verbose).Parse(args)
+
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+	if verbose == nil {
+		t.Fatalf("Expected verbose to be non-nil")
+	}
+	if !*verbose {
+		t.Errorf("Expected *verbose=true, got %v", *verbose)
+	}
+	if len(remainArgs) != 0 {
+		t.Errorf("Expected 0 remaining args, got %v", remainArgs)
+	}
+}
+
+func TestBuilder_Int64(t *testing.T) {
+	var count int64
+	args := []string{"--count", "9223372036854775807"}
+
+	remainArgs, err := Int("--count", &count).Parse(args)
+
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+	if count != 9223372036854775807 {
+		t.Errorf("Expected count=9223372036854775807, got %d", count)
+	}
+	if len(remainArgs) != 0 {
+		t.Errorf("Expected 0 remaining args, got %v", remainArgs)
+	}
+}
+
+func TestBuilder_Int64DoublePointer(t *testing.T) {
+	var count *int64
+	args := []string{"--count", "42"}
+
+	remainArgs, err := Int("--count", &count).Parse(args)
+
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+	if count == nil {
+		t.Fatalf("Expected count to be non-nil")
+	}
+	if *count != 42 {
+		t.Errorf("Expected *count=42, got %d", *count)
+	}
+	if len(remainArgs) != 0 {
+		t.Errorf("Expected 0 remaining args, got %v", remainArgs)
+	}
+}
+
+func TestNewPointerAndInt64Support(t *testing.T) {
+	// Test **bool support
+	var verbose *bool
+	// Test *int64 support
+	var maxSize int64
+	// Test **int64 support
+	var timeout *int64
+
+	args := []string{
+		"--verbose",
+		"--max-size", "9223372036854775807",
+		"--timeout", "30",
+		"remaining",
+	}
+
+	remainArgs, err := Bool("--verbose", &verbose).
+		Int("--max-size", &maxSize).
+		Int("--timeout", &timeout).
+		Parse(args)
+
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+
+	// Verify **bool
+	if verbose == nil {
+		t.Fatalf("Expected verbose to be non-nil")
+	}
+	if !*verbose {
+		t.Errorf("Expected *verbose=true, got %v", *verbose)
+	}
+
+	// Verify *int64
+	if maxSize != 9223372036854775807 {
+		t.Errorf("Expected maxSize=9223372036854775807, got %d", maxSize)
+	}
+
+	// Verify **int64
+	if timeout == nil {
+		t.Fatalf("Expected timeout to be non-nil")
+	}
+	if *timeout != 30 {
+		t.Errorf("Expected *timeout=30, got %d", *timeout)
+	}
+
+	// Verify remaining args
+	if len(remainArgs) != 1 || remainArgs[0] != "remaining" {
+		t.Errorf("Expected remainArgs=['remaining'], got %v", remainArgs)
+	}
+}

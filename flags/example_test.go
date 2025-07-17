@@ -62,7 +62,7 @@ func ExampleBuilder() {
 	// Remaining args: [remaining1 remaining2]
 }
 
-func ExampleBuilder_WithStringHelp() {
+func ExampleBuilder_Help() {
 	// Variables to store the parsed values
 	var verbose string
 	var timeout time.Duration
