@@ -56,11 +56,18 @@ func SplitCamelCase(s string) []string {
 }
 
 func isUpperCase(s string) bool {
-	return strings.ToUpper(s) == s
+	return strings.ToUpper(s) == s && !isDigit(s)
 }
 
 func isLowerCase(s string) bool {
-	return strings.ToLower(s) == s
+	return strings.ToLower(s) == s && !isDigit(s)
+}
+
+func isDigit(s string) bool {
+	if len(s) != 1 {
+		return false
+	}
+	return s[0] >= '0' && s[0] <= '9'
 }
 
 //	Xxxx Yyyyy

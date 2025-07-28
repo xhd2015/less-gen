@@ -42,6 +42,18 @@ func Test_splitCamelCase(t *testing.T) {
 			s:    "HTTPSProtocol",
 			want: []string{"HTTPS", "Protocol"},
 		},
+		{
+			s:    "DataBase64",
+			want: []string{"Data", "Base64"},
+		},
+		{
+			s:    "Base64",
+			want: []string{"Base64"},
+		},
+		{
+			s:    "Base64Protocol",
+			want: []string{"Base64", "Protocol"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.s, func(t *testing.T) {
